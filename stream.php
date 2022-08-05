@@ -1,14 +1,19 @@
 <?php
-// Get Stream URL Desired by website 
+// Set Timezone 
 date_default_timezone_set("Australia/Brisbane");
-$now = date("Y-m-d h:i:sa");
+$now = date("Y-m-d h:i:sa");   
+
+// Get CloudFlare Connecting Client IP or Client IP otherwise.
 if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
   $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 }
+
+// Get User Agent and IP for Client Mocking in Curl 
 $agent = $_SERVER['HTTP_USER_AGENT'];
 $ip = $_SERVER['REMOTE_ADDR'];
 
 
+// Get Stream URL Desired by website 
 $url = urldecode($_GET["stream"]);
 
 
