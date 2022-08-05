@@ -66,20 +66,13 @@ header('Keep-Alive: timeout='.(60*24).', max='.(60*48));
     $bytes = '';
      $stream = true;
     while ($stream) {
-        $bytesLive = fread($handle, $bufferSize);
-        if(strlen($bytes) <=  $bufferSize*4)
-          {
-              $bytes .= $bytesLive;
-          }
-else
-{
-  $bytes = $bytesLive;
-}
-echo $bytes;
-flush_buffers();
+        $bytes = fread($handle, $bufferSize);
+        // BYTE CONTROL HERE, LET'S PASS BYTES DIRECTLY AND USE KEEP ALIVE HEADERS.
+        echo $bytes;
+        flush_buffers();
 
-}
- $status = fclose($handle);
+      }
+  $status = fclose($handle);
   ob_end_flush(); 
 }
 
