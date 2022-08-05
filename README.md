@@ -25,3 +25,19 @@ https://s1-fmt2.liveatc.net/ymhb2.mp3?nocache=2022073007371612963
 ```   
 
 
+
+Example usages,  
+Direct HTML5 Audio link,    
+```
+https://your.site/stream.php?stream=https%3A%2F%2Fwww.caster.fm%2Fwidgets%2Fem_player.php%3Fjsinit%3Dtrue%26uid%3D541413%26t%3Dblue%26c%3D%26pop%3Dtrue
+```
+    
+Example in HTML,   
+```
+<audio controls>
+  <source src="/stream.php?stream=https%3A%2F%2Fwww.caster.fm%2Fwidgets%2Fem_player.php%3Fjsinit%3Dtrue%26uid%3D541413%26t%3Dblue%26c%3D%26pop%3Dtr" type="audio/mpeg">
+Your browser does not support the audio element.
+</audio>
+```
+
+
