@@ -25,7 +25,6 @@ _Other Direct Streams_
 https://s1-fmt2.liveatc.net/ymhb2.mp3?nocache=2022073007371612963
 ```   
 
-Create a FREE account first if you do not yet have one:    https://signup.heroku.com/     [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy) 
 
 Example usages,  
 Direct HTML5 Audio link,    
