@@ -1,35 +1,33 @@
 <?php
-// Set Timezone 
+cors();
 date_default_timezone_set("Australia/Brisbane");
-$now = date("Y-m-d h:i:sa");   
+$now = date("d-m-Y h:i:sa");
 
-// Get CloudFlare Connecting Client IP or Client IP otherwise.
+
 if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
   $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
 }
 
-// Get User Agent and IP for Client Mocking in Curl 
 $agent = $_SERVER['HTTP_USER_AGENT'];
 $ip = $_SERVER['REMOTE_ADDR'];
 
-
-// Get Stream URL Desired by website 
+if(hasParam("stream"))
+{
 $url = urldecode($_GET["stream"]);
-
+}
+else
+{
+header("HTTP/1.0 300 Invalid Input");
+$data = [ 'message' => 'Invalid Input', 'code' => 300 ];
+$response = jsonify($data);
+exit($response);
+}
 
 // Stream Provider Overrides 
 // Caster FM
-/**
-Caster FM only allows direct streams to paying customers, we need to grab the port number and authentication token then read the bytes back to the user with mpeg headers flushing the bytes as they come in from the stream...
- 
-Notes,
-some more work is needed to erase the audio as it gets streamed to the user, or else they're technically downloading the stream, not playing it - refreshing the browser window will start the stream back at the beginning like a downloaded audio file.
-**/
-
 if(strpos($url, "caster.fm") !== null)
 {
  // Caster Widget URL Found, Getting Auth Token as Client
-//
  $data = extractAuthSimple($url);
  $port = $data[0];
  $token = $data[1];
@@ -38,22 +36,20 @@ if(strpos($url, "caster.fm") !== null)
  $url = $gen;
 }
 
-// Broadcastify link is direct, nothing needed here - useless function.
+// Broadcastify
 if(strpos($url, "broadcastify") !== null)
 {
 // URL is Direct stream
 $url = $url;
 }
 
-// Other Providers Assumed Direct Stream, using provided link and reading stream bytes back to Client.
+// Other Providers Assumed Direct Stream
+// Feed Stream Back to Client as Desired Mime Type
+
 
 stream($url);
 
 
-
-// Functions,
-
-// Stream Sniper
 function stream($url, $mime = "audio/mpeg", $bufferSize = 1024*1024)
 {
     header('Content-type: '.$mime);
@@ -66,18 +62,19 @@ header('Keep-Alive: timeout='.(60*24).', max='.(60*48));
     $bytes = '';
      $stream = true;
     while ($stream) {
-        $bytes = fread($handle, $bufferSize);
-        // BYTE CONTROL HERE, LET'S PASS BYTES DIRECTLY AND USE KEEP ALIVE HEADERS.
-        echo $bytes;
-        flush_buffers();
+        $bytesLive = fread($handle, $bufferSize);
 
-      }
-  $status = fclose($handle);
+              $bytes = $bytesLive;
+
+echo $bytes;
+flush_buffers();
+
+}
+ $status = fclose($handle);
   ob_end_flush(); 
 }
 
 
-// buffer flusher
 function flush_buffers(){
 
     ob_flush();
@@ -85,8 +82,6 @@ function flush_buffers(){
 
 }
 
-
-// Auth token extraction
 function extractAuthSimple($url)
 {
    $html = getPage($url);
@@ -99,11 +94,11 @@ function extractAuthSimple($url)
    return explode("&auth=",$keyExtract);
 }
 
-
-// typical get request with curl
 function getPage($url, $asClient = true)
 {
   $ch = curl_init();
+  global $ip;
+  global $agent;
 if($asClient)
 {
     curl_setopt( $ch, CURLOPT_HTTPHEADER, array("REMOTE_ADDR: $ip", "HTTP_X_FORWARDED_FOR: $ip"));
@@ -116,4 +111,65 @@ if($asClient)
      curl_close ($ch);
    return $data;
 }
+
+function jsonify($dataArray)
+{
+header('Content-Type: application/json');
+echo json_encode($dataArray);
+}
+
+function hasParam($param) 
+{
+   if (array_key_exists($param, $_POST))
+    {
+       return array_key_exists($param, $_POST);
+    } else
+    {
+      return array_key_exists($param, $_GET);
+    }
+}
+
+function logFile($fileName, $data, $noDuplicates = true) 
+{
+global $valid;
+     $log_file = dirname(__FILE__) . '/' . $fileName;
+      if (!file_exists($log_file)) 
+         {
+            $fp = fopen($log_file, "w");
+            fclose($fp);
+          }
+
+  $log = fopen($log_file, "r"); 
+  // check exists
+
+  if ($noDuplicates)
+  {
+     while (($buffer = fgets($log)) !== false) 
+       {
+          if (strpos($buffer, $data) !== false) 
+           {
+              $valid = false;
+              break; 
+           }      
+       }
+  }
+fclose($log);
+
+ // continue
+  if ($valid)
+     { 
+       file_put_contents($log_file, $data.PHP_EOL, FILE_APPEND);
+     }
+}
+
+function cors()
+{
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+
+        header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Max-Age: 86400'); 
+    }
+}
+
 ?>
